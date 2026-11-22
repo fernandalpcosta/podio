@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Radar Pódio · Pesquisa de mercado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Layout: relatório de leitura em coluna, secções numeradas pela ordem das perguntas de mercado; mesmas cores e tipos do painel Radar Pódio. */
+:root{
+  --bg:#eef2f5; --surface:#ffffff; --ink:#142131; --muted:#5b6b7c; --line:#d8e0e8;
+  --accent:#0b5fa5; --accent-soft:#dbe9f6; --accent2:#e07a2e;
+  --good:#1f8a55; --good-soft:#d8f0e3; --warn:#b7791f; --warn-soft:#fbefd6; --crit:#c0392b; --idle-soft:#e8edf2;
+  --p1:#0b5fa5; --p2:#e07a2e; --p3:#1f8a55; --p4:#7b4fb0; --p5:#b7791f; --p6:#8a97a6;
+  --font-display:"Archivo","Helvetica Neue",Arial,sans-serif; --font-body:"IBM Plex Sans","Segoe UI",Arial,sans-serif; --font-mono:"IBM Plex Mono",ui-monospace,monospace;
+  --radius:10px; --shadow:0 1px 2px rgba(20,33,49,.06),0 4px 14px rgba(20,33,49,.05);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1720; --surface:#16212d; --ink:#e6edf4; --muted:#93a3b4; --line:#273544;
+  --accent:#5aa7ea; --accent-soft:#1b3550; --accent2:#f0975a;
+  --good:#4cc488; --good-soft:#163a2a; --warn:#e3b04f; --warn-soft:#3d2f14; --crit:#ef7a6c; --idle-soft:#202c38;
+  --p1:#5aa7ea; --p2:#f0975a; --p3:#4cc488; --p4:#b38be0; --p5:#e3b04f; --p6:#7d8b9a;
+  --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0f1720; --surface:#16212d; --ink:#e6edf4; --muted:#93a3b4; --line:#273544;
+  --accent:#5aa7ea; --accent-soft:#1b3550; --accent2:#f0975a;
+  --good:#4cc488; --good-soft:#163a2a; --warn:#e3b04f; --warn-soft:#3d2f14; --crit:#ef7a6c; --idle-soft:#202c38;
+  --p1:#5aa7ea; --p2:#f0975a; --p3:#4cc488; --p4:#b38be0; --p5:#e3b04f; --p6:#7d8b9a;
+  --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--font-body)}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.top{background:var(--surface);border-bottom:1px solid var(--line);padding-block:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top .in{max-width:1120px;margin:0 auto;display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.brand{display:flex;gap:8px;align-items:center;font:800 16px var(--font-display);color:var(--ink);text-decoration:none}
+.brand svg{width:22px;height:22px}
+.toc{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px}
+.toc a{color:var(--muted);text-decoration:none}
+.toc a:hover{color:var(--accent)}
+main{max-width:1120px;margin:0 auto;padding-block:28px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:44px}
+h1{font:800 clamp(26px,4vw,36px)/1.12 var(--font-display);letter-spacing:-.015em;margin:0;text-wrap:balance}
+h2{font:800 clamp(20px,2.6vw,24px)/1.2 var(--font-display);letter-spacing:-.01em;margin:0;text-wrap:balance}
+h3{font:700 15px/1.3 var(--font-display);margin:0}
+p{margin:0;max-width:72ch}
+.muted{color:var(--muted)}
+.small{font-size:12.5px;color:var(--muted);line-height:1.45}
+.eyebrow{font:600 11px var(--font-body);text-transform:uppercase;letter-spacing:.09em;color:var(--accent2)}
+.head{display:flex;flex-direction:column;gap:10px}
+.lede{font-size:17px;max-width:68ch}
+.lede b{font-variant-numeric:tabular-nums}
+section{display:flex;flex-direction:column;gap:16px;scroll-margin-top:16px}
+section>header{display:flex;flex-direction:column;gap:6px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:4px}
+.kpi .v{font:800 28px/1.1 var(--font-display);font-variant-numeric:tabular-nums}
+.kpi .l{color:var(--muted);font-size:12.5px}
+.kpi .s{font:500 11.5px var(--font-mono);color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,400px),1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);min-width:0;display:flex;flex-direction:column;gap:10px}
+.chart{position:relative;min-height:220px}
+.chart svg{display:block;overflow:visible}
+.chart .axis text{fill:var(--muted);font:500 11px var(--font-mono)}
+.chart .axis path,.chart .axis line{stroke:var(--line)}
+.chart .grid line{stroke:var(--line);stroke-opacity:.7}
+.chart .grid path{display:none}
+.lbl{fill:var(--ink);font:500 11.5px var(--font-body)}
+.lbl.m{fill:var(--muted)}
+.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.4;max-width:260px;z-index:5}
+.tip .t{color:var(--muted)}
+.bars{display:flex;flex-direction:column;gap:10px}
+.bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;align-items:baseline}
+.bar .n{min-width:0;overflow-wrap:anywhere;font-size:14px}
+.bar .n small{display:block;color:var(--muted);font-size:12px}
+.bar .v{font:500 13px var(--font-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.bar .track{grid-column:1/-1;height:9px;border-radius:4px;background:var(--idle-soft);overflow:hidden;display:flex}
+.bar .fill{height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--muted)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+.personas{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px}
+.persona{border-top:4px solid var(--pc,var(--accent))}
+.persona dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;margin:0;font-size:13.5px}
+.persona dt{color:var(--muted)}
+.persona dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:760px}
+th{text-align:left;font:600 11px var(--font-body);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.4}
+.pill{display:inline-block;border-radius:999px;padding:1px 9px;font:600 11px var(--font-body);white-space:nowrap;background:var(--idle-soft);color:var(--muted)}
+.pill.Alta{background:var(--good-soft);color:var(--good)}
+.pill.Média{background:var(--warn-soft);color:var(--warn)}
+.note{border-left:3px solid var(--warn);padding:2px 0 2px 12px}
+ul.list{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:8px;max-width:78ch}
+.err{background:var(--warn-soft);color:var(--ink);padding:12px 14px;border-radius:var(--radius)}
+@media (prefers-reduced-motion:no-preference){.bar .fill{transition:width .4s ease-out}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="mark" viewBox="0 0 32 32"><rect x="2" y="18" width="8" height="12" rx="1.6" fill="var(--accent)"/><rect x="12" y="11" width="8" height="19" rx="1.6" fill="var(--accent)"/><rect x="22" y="3" width="8" height="27" rx="1.6" fill="var(--accent2)"/></symbol></defs></svg>
+
+<div class="top"><div class="in">
+  <a class="brand" href="index.html"><svg><use href="#mark"/></svg>Radar Pódio</a>
+  <nav class="toc" aria-label="Secções">
+    <a href="#quem-financia">Quem financia</a><a href="#quem-recebe">Quem recebe</a><a href="#valores">Valores</a><a href="#personas">Personas</a><a href="#hubs">Hubs</a><a href="#oportunidades">Onde entrar</a><a href="#limites">Limites</a><a href="index.html">← Painel</a>
+  </nav>
+</div></div>
+
+<main>
+  <header class="head">
+    <span class="eyebrow">Pesquisa de mercado · financiamento do desporto em Portugal</span>
+    <h1>Quem financia o desporto em Portugal, quem recebe e quanto</h1>
+    <p class="lede" id="lede">A carregar a base…</p>
+    <p class="small" id="fonte">Fonte: db.json do Radar Pódio (INE, PORDATA/IPDJ, AD&amp;C – Portugal 2030, Portal da Transparência – PRR, Governo Regional da Madeira). Valores em euros correntes.</p>
+  </header>
+
+  <div class="kpis" id="kpis"></div>
+
+  <section id="quem-financia">
+    <header>
+      <span class="eyebrow">1 · Quem financia</span>
+      <h2>Quase todo o dinheiro é público, e a maior fatia vem das câmaras</h2>
+      <p class="muted">Nesta base não há empresas privadas a financiar: os financiadores são câmaras municipais, o Estado (IPDJ), a União Europeia e os governos regionais. Patrocínio privado, mecenato e apostas desportivas ficam de fora ou só aparecem em totais. Para um estudo de mercado, o "cliente pagador" do setor é sobretudo a administração pública.</p>
+    </header>
+    <div class="grid">
+      <div class="card">
+        <h3>Ordem de grandeza por financiador</h3>
+        <p class="small">Fluxos anuais (câmaras, IPDJ) e envelopes de vários anos (fundos europeus) não se somam entre si.</p>
+        <div class="bars" id="c-fin"></div>
+      </div>
+      <div class="card">
+        <h3>IPDJ → federações e comités, por ano</h3>
+        <p class="small">Série nacional 2000–2025, em milhões de euros.</p>
+        <div class="chart" id="c-ipdj"></div>
+        <p class="small note">O salto de 2025 inclui uma transferência extraordinária do contrato 2024–2028 dos comités olímpico e paralímpico, ainda por confirmar.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="quem-recebe">
+    <header>
+      <span class="eyebrow">2 · Quem recebe</span>
+      <h2>Federações vivem do IPDJ; municípios, dos fundos europeus; clubes, da câmara</h2>
+      <p class="muted">Cada tipo de beneficiário tem um financiador dominante. No IPDJ, o dinheiro concentra-se nos comités olímpico e paralímpico e em meia dúzia de modalidades.</p>
+    </header>
+    <div class="grid">
+      <div class="card">
+        <h3>Federações e comités que mais recebem do IPDJ · 2021–2024</h3>
+        <div class="bars" id="c-fed"></div>
+      </div>
+      <div class="card">
+        <h3>Valor recebido por perfil de beneficiário · desde 2021</h3>
+        <p class="small">Contratos com beneficiário identificado (camada B) e financiamento anual das federações (S1). Não inclui a despesa direta das câmaras.</p>
+        <div class="bars" id="c-tipos"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="valores">
+    <header>
+      <span class="eyebrow">3 · Quanto</span>
+      <h2>O tamanho do cheque separa os perfis</h2>
+      <p class="muted">Cada ponto é um contrato ou apoio, em escala logarítmica. O traço vertical marca a mediana de cada perfil.</p>
+    </header>
+    <div class="card"><div class="chart" id="c-tickets" style="min-height:320px"></div></div>
+  </section>
+
+  <section id="personas">
+    <header>
+      <span class="eyebrow">4 · Personas</span>
+      <h2>Seis perfis de beneficiário</h2>
+      <p class="muted">Agrupamento a partir do tipo de beneficiário de cada registo. Os números vêm dos mesmos contratos do gráfico acima.</p>
+    </header>
+    <div class="personas" id="c-personas"></div>
+  </section>
+
+  <section id="hubs">
+    <header>
+      <span class="eyebrow">5 · Hubs</span>
+      <h2>O dinheiro concentra-se no litoral norte e na área de Lisboa</h2>
+      <p class="muted">A despesa municipal em desporto é o maior bolo e está muito concentrada. O Norte lidera em valor absoluto; o Algarve e as ilhas entregam aos clubes uma parte maior do que gastam.</p>
+    </header>
+    <div class="grid">
+      <div class="card">
+        <h3>Despesa das câmaras por região · 2025</h3>
+        <div class="legend"><span><span class="dot" style="background:var(--p1)"></span>Despesa total</span><span><span class="dot" style="background:var(--p3)"></span>Parte entregue a clubes e associações</span></div>
+        <div class="bars" id="c-reg"></div>
+      </div>
+      <div class="card">
+        <h3>Os 15 concelhos que mais gastam em desporto · 2025</h3>
+        <div class="legend"><span><span class="dot" style="background:var(--p1)"></span>Despesa total</span><span><span class="dot" style="background:var(--p3)"></span>Parte entregue a clubes e associações</span></div>
+        <div class="bars" id="c-conc"></div>
+      </div>
+      <div class="card">
+        <h3>Concentração da despesa municipal · 2025</h3>
+        <p class="small">Concelhos ordenados do que mais gasta para o que menos gasta.</p>
+        <div class="chart" id="c-pareto"></div>
+      </div>
+      <div class="card">
+        <h3>Quanto cada câmara entrega aos clubes · 2025</h3>
+        <p class="small">Número de concelhos por parte da despesa em desporto que vai para clubes e associações. Há câmaras que gerem os próprios equipamentos e câmaras que delegam nos clubes.</p>
+        <div class="chart" id="c-quota"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="oportunidades">
+    <header>
+      <span class="eyebrow">6 · Onde entrar</span>
+      <h2>Programas de financiamento abertos ou recorrentes</h2>
+      <p class="muted">Os canais mapeados na base, ordenados pela adequação a clubes e associações.</p>
+    </header>
+    <div class="card"><div class="tablewrap"><table>
+      <thead><tr><th>Programa</th><th>Entidade</th><th>Tipo</th><th>Área</th><th>Próxima janela</th><th>Adequação</th></tr></thead>
+      <tbody id="t-opps"></tbody>
+    </table></div></div>
+  </section>
+
+  <section id="limites">
+    <header>
+      <span class="eyebrow">7 · Limites e próximos passos</span>
+      <h2>O que esta base ainda não responde</h2>
+    </header>
+    <ul class="list">
+      <li><b>Empresas privadas como financiadoras.</b> Patrocínio, mecenato desportivo e naming rights não estão na base. É a maior lacuna para uma pesquisa de mercado e exige outras fontes (relatórios de clubes, SAD cotadas, imprensa).</li>
+      <li><b>Lista de clubes por câmara.</b> Sabe-se quanto cada câmara entrega a clubes, mas a lista de clubes apoiados só existe para poucos municípios. Os contratos-programa em Diário da República seriam a fonte mais completa.</li>
+      <li><b>Séries antigas de fundos europeus.</b> Portugal 2020, QREN e Erasmus+ Desporto ainda não foram recolhidos; o histórico de fundos europeus começa em 2021.</li>
+      <li><b>Camadas não se somam.</b> Despesa das câmaras, financiamento do IPDJ e fundos europeus medem coisas diferentes. Esta página nunca soma camadas entre si.</li>
+    </ul>
+    <p class="small">Perfis de beneficiário definidos a partir do campo <code>tipo_benef</code>. Federações e comités usam a série anual S1 de 2021 a 2024; os contratos de preparação olímpica da camada B não entram à parte, porque já estão dentro da S1. Envelopes (pacotes que contêm outras medidas) ficam de fora.</p>
+  </section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script>
+(() => {
+const $ = (s) => document.querySelector(s);
+const nf0 = new Intl.NumberFormat('pt-PT', { maximumFractionDigits: 0 });
+const nf1 = new Intl.NumberFormat('pt-PT', { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+const eur = (v) => {
+  if (v == null || isNaN(v)) return '—';
+  const a = Math.abs(v);
+  if (a >= 1e8) return nf0.format(v / 1e6) + ' M€';
+  if (a >= 1e6) return nf1.format(v / 1e6) + ' M€';
+  if (a >= 1e4) return nf0.format(v / 1e3) + ' mil €';
+  if (a >= 1e3) return nf1.format(v / 1e3) + ' mil €';
+  return nf0.format(v) + ' €';
+};
+const pct = (v) => (v == null || isNaN(v)) ? '—' : nf0.format(v) + '%';
+const num = (v) => Number(v) || 0;
+const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+
+const PERSONAS = [
+  { pid: 'federacao', nome: 'Federação ou comité', cor: 'var(--p1)', texto: 'Recebe todos os anos do IPDJ por contrato-programa. Os comités olímpico e paralímpico recebem por ciclo olímpico. Poucos atores, cheques altos e relação estável com o Estado.' },
+  { pid: 'municipio', nome: 'Município ou freguesia', cor: 'var(--p2)', texto: 'É quem mais projetos tem nos fundos europeus: obras em pavilhões e piscinas, eficiência energética e formação. Também é o maior financiador do setor, com orçamento próprio.' },
+  { pid: 'clube', nome: 'Clube ou associação', cor: 'var(--p3)', texto: 'Vive do apoio da câmara (contratos-programa) e, na Madeira, do plano regional. Os apoios das câmaras só aparecem em totais por concelho, por isso os contratos com nome de clube vêm sobretudo da Madeira e dos fundos europeus, onde o valor sobe muito.' },
+  { pid: 'empresa', nome: 'Empresa do setor', cor: 'var(--p4)', texto: 'Padel, têxtil desportivo, eventos, turismo ativo e tecnologia. Entra pelo Portugal 2030 com projetos de inovação e digitalização. É o perfil mais próximo de um cliente de consultoria.' },
+  { pid: 'outras', nome: 'Escola, universidade e outras', cor: 'var(--p5)', texto: 'Faculdades de desporto, escolas profissionais e indústria. Poucos projetos, de valor alto, quase sempre ligados a inovação ou formação.' },
+  { pid: 'nd', nome: 'Beneficiário não divulgado', cor: 'var(--p6)', texto: 'Sobretudo apoios do PRR à acessibilidade de instalações, de valor fixo e baixo, em que a listagem pública não diz quem recebeu.' },
+];
+const pcor = (pid) => (PERSONAS.find((p) => p.pid === pid) || {}).cor || 'var(--p6)';
+
+function perfil(r) {
+  const t = r.tipo_benef || '';
+  if (r.camada === 'S1' || /Comité|Federação/.test(t)) return 'federacao';
+  if (/^Município/.test(t)) return 'municipio';
+  if (/^Clube/.test(t)) return 'clube';
+  if (/^Empresa|Organizador/.test(t)) return 'empresa';
+  if (/^Outra/.test(t)) return 'outras';
+  return 'nd';
+}
+
+function analisar(db) {
+  const R = db.rec, M = db.mun;
+  const soma = (a, f) => a.reduce((t, x) => t + num(x[f]), 0);
+  const S1 = R.filter((r) => r.camada === 'S1');
+  const B = R.filter((r) => r.camada === 'B' && !r.envelope);
+  const B21 = B.filter((r) => num(r.ano) >= 2021);
+  const t25 = soma(M, 't25'), t21 = soma(M, 't21'), a25 = soma(M, 'a25');
+  const ipdj24 = soma(S1.filter((r) => num(r.ano) === 2024), 'valor');
+  const pt2030 = soma(B.filter((r) => /Portugal 2030/.test(r.financiador)), 'valor');
+  const prr = soma(B.filter((r) => /PRR/.test(r.financiador)), 'valor');
+  const ord = M.map((m) => num(m.t25)).sort((x, y) => y - x);
+  const topShare = (k) => d3.sum(ord.slice(0, k)) / t25 * 100;
+  const agg = /Outras|conjunto/i;
+
+  const contratos = [
+    ...B21.filter((r) => num(r.valor) > 0 && !/Comité/.test(r.tipo_benef || '')),
+    ...S1.filter((r) => num(r.ano) >= 2021 && num(r.ano) <= 2024 && num(r.valor) > 0 && !agg.test(r.beneficiario)),
+  ].map((r) => ({ id: r.id, pid: perfil(r), valor: num(r.valor), beneficiario: r.beneficiario, financiador: r.financiador, tema: r.tipo_apoio, programa: r.programa, ano: r.ano }));
+
+  const moda = (v, f) => d3.greatest(d3.rollups(v, (g) => g.length, (r) => r[f]), (x) => x[1])?.[0] ?? '—';
+  const personas = PERSONAS.map((p) => {
+    const v = contratos.filter((r) => r.pid === p.pid), s = v.map((r) => r.valor).sort(d3.ascending);
+    return { ...p, n: v.length, total: d3.sum(s), mediana: s.length ? d3.quantileSorted(s, .5) : null, p25: s.length ? d3.quantileSorted(s, .25) : null, p75: s.length ? d3.quantileSorted(s, .75) : null, financiador: moda(v, 'financiador'), tema: moda(v, 'tema') };
+  });
+
+  let acc = 0;
+  const pareto = [{ x: 0, y: 0 }, ...ord.map((v, i) => { acc += v; return { x: (i + 1) / ord.length * 100, y: acc / t25 * 100 }; })];
+  const quota = d3.range(0, 100, 10).map((x) => ({ de: x, n: 0 }));
+  M.forEach((m) => { const t = num(m.t25); if (!(t > 0) || m.a25 == null) return; quota[Math.floor(Math.min(99.999, num(m.a25) / t * 100) / 10)].n++; });
+
+  return {
+    kpi: { t25, t21, a25, ipdj24, pt2030, prr, cresc: (t25 / t21 - 1) * 100, clubesPct: a25 / t25 * 100, ratio: t25 / ipdj24, top30: topShare(30), top10pct: topShare(Math.round(ord.length * .1)), concelhos: M.length, registos: R.length },
+    financiadores: [
+      { name: 'Câmaras municipais', sub: 'Despesa em desporto, 2025 (anual)', value: t25, color: 'var(--p1)' },
+      { name: 'União Europeia · Portugal 2030', sub: 'Fundo aprovado para operações de desporto, 2023–2026', value: pt2030, color: 'var(--p4)' },
+      { name: 'IPDJ (Estado)', sub: 'Federações e comités, 2024 (anual)', value: ipdj24, color: 'var(--p2)' },
+      { name: 'União Europeia · PRR', sub: 'Projetos de desporto, 2021–2026', value: prr, color: 'var(--p4)' },
+      { name: 'Governo Regional da Madeira', sub: 'Apoio a clubes (PRAD), época 2023/24', value: soma(B21.filter((r) => /Madeira/.test(r.financiador)), 'valor'), color: 'var(--p5)' },
+    ],
+    ipdj: d3.rollups(S1.filter((r) => r.ano != null), (v) => d3.sum(v, (r) => num(r.valor)), (r) => num(r.ano)).sort((a, b) => a[0] - b[0]).map(([ano, valor]) => ({ ano, valor })),
+    federacoes: d3.rollups(S1.filter((r) => num(r.ano) >= 2021 && num(r.ano) <= 2024 && !agg.test(r.beneficiario)), (v) => d3.sum(v, (r) => num(r.valor)), (r) => r.beneficiario).sort((a, b) => b[1] - a[1]).slice(0, 12),
+    contratos, personas, pareto, quota,
+    regioes: d3.rollups(M, (v) => ({ n: v.length, t: soma(v, 't25'), a: soma(v, 'a25') }), (m) => m.regiao).sort((a, b) => b[1].t - a[1].t),
+    concelhos: M.filter((m) => num(m.t25) > 0).sort((a, b) => b.t25 - a.t25).slice(0, 15),
+    opps: [...db.opps].sort((a, b) => ({ Alta: 0, 'Média': 1, Baixa: 2 }[a.adeq] ?? 3) - ({ Alta: 0, 'Média': 1, Baixa: 2 }[b.adeq] ?? 3)),
+  };
+}
+
+function bars(host, items) {
+  const max = d3.max(items, (d) => d.value) || 1;
+  host.replaceChildren(...items.map((d) => {
+    const row = el('div', 'bar'), n = el('div', 'n', d.name);
+    if (d.sub) n.appendChild(el('small', null, d.sub));
+    const tr = el('div', 'track');
+    const add = (w, c) => { const f = el('div', 'fill'); f.style.width = w + '%'; f.style.background = c; tr.appendChild(f); };
+    if (d.value2 != null) { add(d.value2 / max * 100, 'var(--p3)'); add((d.value - d.value2) / max * 100, d.color || 'var(--p1)'); }
+    else add(d.value / max * 100, d.color || 'var(--p1)');
+    row.append(n, el('div', 'v', d.label ?? eur(d.value)), tr);
+    return row;
+  }));
+}
+
+function tip(host) {
+  const t = el('div', 'tip'); t.hidden = true; host.appendChild(t);
+  return {
+    show(ev, title, lines) {
+      t.replaceChildren(Object.assign(el('div', null, title), { style: 'font-weight:600' }), ...lines.map((l) => el('div', 't', l)));
+      t.hidden = false;
+      const r = host.getBoundingClientRect();
+      let x = ev.clientX - r.left + 12, y = ev.clientY - r.top + 12;
+      if (x + t.offsetWidth > r.width) x = Math.max(0, ev.clientX - r.left - t.offsetWidth - 12);
+      if (y + t.offsetHeight > r.height) y = Math.max(0, ev.clientY - r.top - t.offsetHeight - 12);
+      t.style.left = x + 'px'; t.style.top = y + 'px';
+    },
+    hide() { t.hidden = true; },
+  };
+}
+
+function svgIn(host, H, label) {
+  host.replaceChildren();
+  const W = host.clientWidth || 320;
+  const svg = d3.select(host).append('svg').attr('width', '100%').attr('height', H).attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', label);
+  return { svg, W };
+}
+
+function drawIpdj(A) {
+  const host = $('#c-ipdj'), rows = A.ipdj, H = 230, m = { t: 14, r: 16, b: 26, l: 34 };
+  const { svg, W } = svgIn(host, H, 'Financiamento anual do IPDJ às federações e comités, 2000 a 2025');
+  const x = d3.scaleLinear().domain(d3.extent(rows, (r) => r.ano)).range([m.l, W - m.r]);
+  const y = d3.scaleLinear().domain([0, d3.max(rows, (r) => r.valor) * 1.08]).nice().range([H - m.b, m.t]);
+  svg.append('g').attr('class', 'grid').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickSize(-(W - m.l - m.r)).tickFormat(''));
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickFormat((v) => v / 1e6)).call((g) => g.select('.domain').remove());
+  const step = W < 420 ? 10 : 5;
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).tickValues(rows.map((r) => r.ano).filter((a) => a % step === 0)).tickFormat(d3.format('d')));
+  const line = d3.line().x((r) => x(r.ano)).y((r) => y(r.valor));
+  svg.append('path').datum(rows.filter((r) => r.ano < 2025)).attr('fill', 'none').style('stroke', 'var(--p1)').attr('stroke-width', 2).attr('d', line);
+  svg.append('path').datum(rows.slice(-2)).attr('fill', 'none').style('stroke', 'var(--warn)').attr('stroke-width', 2).attr('stroke-dasharray', '4 3').attr('d', line);
+  const t = tip(host);
+  svg.append('g').selectAll('circle').data(rows).join('circle').attr('cx', (r) => x(r.ano)).attr('cy', (r) => y(r.valor)).attr('r', (r) => r.ano === 2025 ? 5 : 3)
+    .style('fill', (r) => r.ano === 2025 ? 'var(--warn)' : 'var(--p1)')
+    .on('pointermove', (ev, r) => t.show(ev, String(r.ano), [eur(r.valor)])).on('pointerleave', () => t.hide());
+  const p25 = rows.find((r) => r.ano === 2025), p24 = rows.find((r) => r.ano === 2024);
+  if (p25) svg.append('text').attr('class', 'lbl').attr('x', x(2025) - 9).attr('y', y(p25.valor) + 4).attr('text-anchor', 'end').text(eur(p25.valor));
+  if (p24) svg.append('text').attr('class', 'lbl m').attr('x', x(2024)).attr('y', y(p24.valor) - 10).attr('text-anchor', 'end').text('2024: ' + eur(p24.valor));
+  svg.append('text').attr('class', 'lbl m').attr('x', m.l).attr('y', m.t - 4).text('M€');
+}
+
+function drawTickets(A) {
+  const host = $('#c-tickets'), rows = A.contratos;
+  const narrow = (host.clientWidth || 320) < 560;
+  const m = { t: 8, r: 18, b: 28, l: narrow ? 8 : 210 }, band = narrow ? 66 : 50, H = m.t + m.b + band * PERSONAS.length;
+  const { svg, W } = svgIn(host, H, 'Valor de cada contrato por perfil de beneficiário, em escala logarítmica');
+  const x = d3.scaleLog().domain([1e3, 2e8]).range([m.l, W - m.r]).clamp(true);
+  const y = d3.scaleBand().domain(PERSONAS.map((p) => p.pid)).range([m.t, H - m.b]).paddingInner(.2);
+  const ticks = narrow ? [1e3, 1e5, 1e7] : [1e3, 1e4, 1e5, 1e6, 1e7, 1e8];
+  svg.append('g').attr('class', 'grid').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).tickValues(ticks).tickSize(-(H - m.t - m.b)).tickFormat(''));
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).tickValues(ticks).tickFormat(eur)).call((g) => g.select('.domain').remove());
+  const top = (pid) => y(pid) + (narrow ? 17 : 4), hgt = y.bandwidth() - (narrow ? 21 : 8);
+  PERSONAS.forEach((p) => {
+    if (narrow) svg.append('text').attr('class', 'lbl').attr('x', m.l).attr('y', y(p.pid) + 11).text(p.nome);
+    else svg.append('text').attr('class', 'lbl').attr('x', m.l - 12).attr('y', y(p.pid) + y.bandwidth() / 2 + 4).attr('text-anchor', 'end').text(p.nome);
+  });
+  const jit = (s) => { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return (h % 1000) / 1000; };
+  const t = tip(host);
+  svg.append('g').selectAll('circle').data(rows).join('circle')
+    .attr('cx', (r) => x(Math.max(1e3, r.valor))).attr('cy', (r) => top(r.pid) + jit(r.id) * hgt).attr('r', 3)
+    .style('fill', (r) => pcor(r.pid)).attr('fill-opacity', .55)
+    .on('pointermove', (ev, r) => t.show(ev, r.beneficiario, [eur(r.valor) + (r.ano ? ' · ' + r.ano : ''), r.programa, r.tema].filter(Boolean)))
+    .on('pointerleave', () => t.hide());
+  const med = A.personas.filter((p) => p.mediana);
+  svg.append('g').selectAll('line').data(med).join('line').attr('x1', (p) => x(p.mediana)).attr('x2', (p) => x(p.mediana))
+    .attr('y1', (p) => top(p.pid) - 3).attr('y2', (p) => top(p.pid) + hgt + 3).style('stroke', 'var(--ink)').attr('stroke-width', 2);
+  svg.append('g').selectAll('text').data(med).join('text').attr('class', 'lbl').attr('x', (p) => x(p.mediana) + 5).attr('y', (p) => top(p.pid) + hgt + 2).text((p) => eur(p.mediana));
+}
+
+function drawPareto(A) {
+  const host = $('#c-pareto'), rows = A.pareto, H = 230, m = { t: 12, r: 16, b: 30, l: 38 };
+  const { svg, W } = svgIn(host, H, 'Curva de concentração da despesa municipal em desporto');
+  const x = d3.scaleLinear().domain([0, 100]).range([m.l, W - m.r]), y = d3.scaleLinear().domain([0, 100]).range([H - m.b, m.t]);
+  svg.append('g').attr('class', 'grid').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickSize(-(W - m.l - m.r)).tickFormat(''));
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickFormat((v) => v + '%')).call((g) => g.select('.domain').remove());
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(5).tickFormat((v) => v + '%'));
+  svg.append('line').attr('x1', x(0)).attr('y1', y(0)).attr('x2', x(100)).attr('y2', y(100)).style('stroke', 'var(--muted)').attr('stroke-dasharray', '3 3');
+  svg.append('path').datum(rows).attr('fill', 'none').style('stroke', 'var(--p1)').attr('stroke-width', 2).attr('d', d3.line().x((r) => x(r.x)).y((r) => y(r.y)));
+  const p10 = rows.find((r) => r.x >= 10);
+  svg.append('circle').attr('cx', x(p10.x)).attr('cy', y(p10.y)).attr('r', 4).style('fill', 'var(--p1)');
+  svg.append('text').attr('class', 'lbl').attr('x', x(p10.x) + 8).attr('y', y(p10.y) + 14).text('10% dos concelhos → ' + pct(p10.y) + ' da despesa');
+  svg.append('text').attr('class', 'lbl m').attr('x', W - m.r).attr('y', H - m.b - 6).attr('text-anchor', 'end').text('distribuição igual');
+  const t = tip(host);
+  svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', W - m.l - m.r).attr('height', H - m.t - m.b).attr('fill', 'transparent')
+    .on('pointermove', (ev) => { const px = x.invert(d3.pointer(ev)[0]); const r = rows.find((d) => d.x >= px) || rows[rows.length - 1]; t.show(ev, pct(r.x) + ' dos concelhos', [pct(r.y) + ' da despesa']); })
+    .on('pointerleave', () => t.hide());
+}
+
+function drawQuota(A) {
+  const host = $('#c-quota'), rows = A.quota, H = 230, m = { t: 18, r: 8, b: 30, l: 8 };
+  const { svg, W } = svgIn(host, H, 'Número de concelhos por percentagem da despesa em desporto entregue a clubes');
+  const x = d3.scaleBand().domain(rows.map((r) => r.de)).range([m.l, W - m.r]).padding(.15);
+  const y = d3.scaleLinear().domain([0, d3.max(rows, (r) => r.n) || 1]).range([H - m.b, m.t]);
+  svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', (r) => x(r.de)).attr('width', x.bandwidth()).attr('y', (r) => y(r.n)).attr('height', (r) => y(0) - y(r.n)).attr('rx', 2).style('fill', 'var(--p3)');
+  svg.append('g').selectAll('text').data(rows).join('text').attr('class', 'lbl').attr('text-anchor', 'middle').attr('x', (r) => x(r.de) + x.bandwidth() / 2).attr('y', (r) => y(r.n) - 4).text((r) => r.n);
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${H - m.b})`)
+    .call(d3.axisBottom(x).tickValues(rows.map((r) => r.de).filter((d) => W >= 420 || d % 20 === 0)).tickFormat((d) => d + '–' + (d + 10) + '%')).call((g) => g.select('.domain').remove());
+}
+
+function render(A) {
+  const k = A.kpi;
+  const lede = $('#lede'); lede.replaceChildren();
+  const b = (t) => el('b', null, t);
+  lede.append('Em 2025 as câmaras municipais gastaram ', b(eur(k.t25)), ' em desporto, ', b(nf0.format(k.ratio) + ' vezes'), ' o valor que o IPDJ transferiu às federações em 2024. O mercado é concentrado: ', b(pct(k.top30)), ' da despesa municipal está em 30 dos ', b(nf0.format(k.concelhos)), ' concelhos.');
+  $('#fonte').prepend(nf0.format(k.registos) + ' registos. ');
+
+  const kpi = (v, l, s) => { const d = el('div', 'kpi'); d.append(el('span', 'l', l), el('div', 'v', v), el('span', 's', s)); return d; };
+  $('#kpis').replaceChildren(
+    kpi(eur(k.t25), 'Câmaras municipais · despesa em desporto 2025', (k.cresc > 0 ? '+' : '') + pct(k.cresc) + ' face a 2021'),
+    kpi(eur(k.a25), 'Das câmaras para clubes e associações · 2025', pct(k.clubesPct) + ' da despesa municipal'),
+    kpi(eur(k.ipdj24), 'IPDJ → federações e comités · 2024', 'financiamento anual do Estado'),
+    kpi(eur(k.pt2030 + k.prr), 'Fundos europeus aprovados · 2021–2026', 'Portugal 2030 e PRR, vários anos'),
+  );
+
+  bars($('#c-fin'), A.financiadores);
+  bars($('#c-fed'), A.federacoes.map(([n, v]) => ({ name: n.replace('Federação Portuguesa de ', 'FP '), value: v, color: /Comité/.test(n) ? 'var(--p1)' : 'var(--p2)' })));
+  bars($('#c-tipos'), [...A.personas].sort((a, b) => b.total - a.total).map((p) => ({ name: p.nome, sub: nf0.format(p.n) + ' registos', value: p.total, color: p.cor })));
+  bars($('#c-reg'), A.regioes.map(([r, o]) => ({ name: r, sub: o.n + ' concelhos · ' + pct(o.a / o.t * 100) + ' para clubes', value: o.t, value2: o.a })));
+  bars($('#c-conc'), A.concelhos.map((m) => ({ name: m.concelho, sub: m.regiao + ' · ' + pct(num(m.a25) / m.t25 * 100) + ' para clubes', value: m.t25, value2: num(m.a25) })));
+
+  $('#c-personas').replaceChildren(...A.personas.map((p) => {
+    const c = el('article', 'card persona'); c.style.setProperty('--pc', p.cor);
+    const dl = el('dl');
+    [['Registos', nf0.format(p.n)], ['Mediana', eur(p.mediana)], ['Metade central', eur(p.p25) + ' a ' + eur(p.p75)], ['Total', eur(p.total)], ['Financiador principal', p.financiador], ['Tema principal', p.tema]]
+      .forEach(([a, v]) => dl.append(el('dt', null, a), el('dd', null, v)));
+    c.append(el('h3', null, p.nome), el('p', 'small', p.texto), dl);
+    return c;
+  }));
+
+  $('#t-opps').replaceChildren(...A.opps.map((o) => {
+    const tr = el('tr'), td0 = el('td');
+    if (o.l_of && /^https?:\/\//.test(o.l_of)) { const a = el('a', null, o.nome); a.href = o.l_of; a.target = '_blank'; a.rel = 'noopener'; td0.appendChild(a); } else td0.textContent = o.nome;
+    const tdA = el('td'); tdA.appendChild(el('span', 'pill ' + (o.adeq || ''), o.adeq || '—'));
+    tr.append(td0, el('td', null, o.inst), el('td', null, o.tipo), el('td', null, o.area), el('td', null, o.prox || '—'), tdA);
+    return tr;
+  }));
+
+  const charts = () => { drawIpdj(A); drawTickets(A); drawPareto(A); drawQuota(A); };
+  charts();
+  let w = innerWidth; addEventListener('resize', () => { if (Math.abs(innerWidth - w) > 20) { w = innerWidth; charts(); } });
+}
+
+fetch('db.json').then((r) => r.json()).then((db) => render(analisar(db))).catch(() => {
+  $('#lede').replaceChildren(Object.assign(el('span', 'err'), { textContent: 'Não foi possível carregar a base (db.json). Abra a página através de um servidor web, não diretamente do disco.' }));
+});
+})();
+</script>
+</body>
+</html>

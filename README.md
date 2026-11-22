@@ -13,3 +13,4 @@ Base de dados do financiamento público ao desporto em Portugal e o painel que a
   - `opps` — oportunidades de financiamento (23)
   - `gerado` — data de geração
 - `index.html` — painel "Radar Pódio" que lê a base.
+- `analise.html` — "Pesquisa de mercado": quem financia, quem recebe, valores, personas de beneficiário e hubs geográficos, calculados a partir de `db.json`.
